@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,6 +9,7 @@ public class AIController : MonoBehaviour
     // public Animator Animator { get; private set; } // Not needed since we're not using animations
     public Transform[] Waypoints;
     public Transform Player;
+    public StateMachine StateMachine {get; private set;}
 
     public float AttackRange = 2f; // New attack range variable
     public LayerMask PlayerLayer;
@@ -119,6 +121,24 @@ public class AIController : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position, transform.position + leftBoundary * viewDistance);
         Gizmos.DrawLine(transform.position, transform.position + rightBoundary * viewDistance);
+    }
+
+    void Start()
+    {
+        Agent = GetComponent<NavMeshAgent>();
+        aiAnimationController = GetComponent<AIAnimationController>();
+        StateMachine = new StateMachine();
+        StateMachine.AddState(new IdleState(this));
+        StateMachine.AddState(new PatrolState(this));
+        StateMachine.AddState(new ChaseState(this));
+        StateMachine.AddState(new AttackState(this));
+        StateMachine.TransitionToState(StateType.Idle);
+    }
+
+    void Update()
+    {
+        StateMachine.Update();
+        currentState = StateMachine.GetCurrentStateType();
     }
 
 }
